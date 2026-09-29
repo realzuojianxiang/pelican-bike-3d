@@ -20,6 +20,8 @@ python -m http.server 8080
 # 打开 http://localhost:8080
 ```
 
-## CDN 访问
-通过 jsDelivr 直接渲染：
-- 主页面：`https://cdn.jsdelivr.net/gh/<owner>/<repo>@main/index.html`
+## 在线访问（已部署）
+- **GitHub Pages（推荐，正确 `text/html` 直接渲染）**：
+  https://realzuojianxiang.github.io/pelican-bike-3d/
+- jsDelivr 源文件：`https://cdn.jsdelivr.net/gh/realzuojianxiang/pelican-bike-3d@main/`
+  （注：jsDelivr 对 HTML 强制 `text/plain`，浏览器会当纯文本显示，故正式访问请用上面的 Pages 链接）
