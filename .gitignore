@@ -1,0 +1,9 @@
+# 依赖 / 缓存
+node_modules/
+chromium-*
+chrome_profile/
+*.png
+resp_*.txt
+up_*.txt
+chrome_*.txt
+render.png
