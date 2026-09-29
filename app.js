@@ -57,26 +57,39 @@ camera.position.set(6.5, 4.2, 8.5);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-// ---------- 渐变天空 (CanvasTexture) ----------
-function makeSky(top, bottom) {
-  const c = document.createElement('canvas');
-  c.width = 16; c.height = 256;
-  const g = c.getContext('2d');
-  const grad = g.createLinearGradient(0, 0, 0, 256);
-  grad.addColorStop(0, top);
-  grad.addColorStop(1, bottom);
-  g.fillStyle = grad; g.fillRect(0, 0, 16, 256);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-let sky;
+// ---------- 渐变天空穹顶 (顶点色, 与渲染器无关, 必定可见) ----------
+const skyGeo = new THREE.SphereGeometry(90, 32, 16);
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  depthWrite: false,
+  fog: false,
+  uniforms: {
+    topColor: { value: new THREE.Color(0x6fb0ff) },
+    botColor: { value: new THREE.Color(0xe6f2ff) },
+  },
+  vertexShader: `
+    varying vec3 vPos;
+    void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  `,
+  fragmentShader: `
+    varying vec3 vPos;
+    uniform vec3 topColor; uniform vec3 botColor;
+    void main(){
+      float h = clamp(normalize(vPos).y * 0.5 + 0.5, 0.0, 1.0);
+      vec3 c = mix(botColor, topColor, pow(h, 0.8));
+      gl_FragColor = vec4(c, 1.0);
+    }
+  `,
+});
+const skyDome = new THREE.Mesh(skyGeo, skyMat);
+skyDome.renderOrder = -1;
+scene.add(skyDome);
 function applySky() {
-  const top = STATE.night ? '#0a1230' : '#7fb4ff';
-  const bottom = STATE.night ? '#1b2a52' : '#dff0ff';
-  sky = makeSky(top, bottom);
-  scene.background = sky;
-  scene.fog.color.set(STATE.night ? 0x16213f : 0x9ec6f0);
+  const top = new THREE.Color(STATE.night ? 0x0a1230 : 0x6fb0ff);
+  const bot = new THREE.Color(STATE.night ? 0x1b2a52 : 0xe6f2ff);
+  skyMat.uniforms.topColor.value = top.convertSRGBToLinear();
+  skyMat.uniforms.botColor.value = bot.convertSRGBToLinear();
+  scene.fog.color.copy(bot);
 }
 applySky();
 
